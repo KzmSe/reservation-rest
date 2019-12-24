@@ -4,6 +4,7 @@ import az.gov.adra.dataTransferObjects.ReservationDTO;
 import az.gov.adra.dataTransferObjects.ReservationDTOForAdd;
 import az.gov.adra.dataTransferObjects.ReservationDTOForUpdate;
 import az.gov.adra.entity.Reservation;
+import az.gov.adra.entity.User;
 import az.gov.adra.exception.ReservationCredentialsException;
 
 
@@ -20,6 +21,8 @@ public interface ReservationRepository {
     void addReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException;
 
     void updateReservation(ReservationDTOForUpdate dto) throws ReservationCredentialsException;
+
+    List<User> findUsersOfReservationById(long id);
 
     void isReservationExistWithGivenId(long id) throws ReservationCredentialsException;
 

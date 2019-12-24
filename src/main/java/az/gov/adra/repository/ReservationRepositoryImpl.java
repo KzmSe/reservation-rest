@@ -35,6 +35,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     private static final String ADD_RESERVATION_SQL = "insert into Reservation(username, topic, date, start_time, end_time, room_id, status) values (?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_RESERVATION_SQL = "update Reservation set topic = ?, date = ?, start_time = ?, end_time = ?, room_id = ? where id = ? and username = ? and status = ?";
     private static final String DELETE_USERS_OF_RESERVATION_SQL = "delete from Reservation_users where reservation_id = ?";
+    private static final String FIND_USERS_OF_RESERVATION_BY_ID = "select u.username, u.name, u.surname from Reservation_users ru inner join users u on ru.username = u.username where ru.reservation_id = ?";
     private static final String ADD_USERS_OF_RESERVATION_SQL = "insert into Reservation_users(username, reservation_id) values(?, ?)";
     private static final String IS_RESERVATION_EXIST_WITH_GIVEN_ID_SQL = "select count(*) as count from Reservation where id = ? and status = ?";
     private static final String IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL = "select count(*) as count from Reservation where ((? between start_time and end_time or ? between start_time and end_time) or (start_time between ? and ? or end_time between ? and ?)) and date = ? and room_id = ? and status = ?";
@@ -195,6 +196,27 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         Arrays.stream(dto.getUsers()).forEach(username -> {
             jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, username, dto.getId());
         });
+    }
+
+    @Override
+    public List<User> findUsersOfReservationById(long id) {
+        List<User> users = jdbcTemplate.query(FIND_USERS_OF_RESERVATION_BY_ID, new Object[]{id}, new ResultSetExtractor<List<User>>() {
+            @Override
+            public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {
+                List<User> list = new LinkedList<>();
+
+                while (rs.next()) {
+                    User user = new User();
+                    user.setUsername(rs.getString("username"));
+                    user.setName(rs.getString("name"));
+                    user.setSurname(rs.getString("surname"));
+                    list.add(user);
+                }
+                return list;
+            }
+        });
+
+        return users;
     }
 
     @Override

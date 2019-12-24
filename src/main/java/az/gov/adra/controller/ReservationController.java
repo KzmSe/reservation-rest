@@ -85,6 +85,14 @@ public class ReservationController {
         reservationService.updateReservation(dto);
     }
 
+    @GetMapping("/reservations/{reservationId}/users")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public List<User> findUsersOfReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
+        reservationService.isReservationExistWithGivenId(id);
+        List<User> users = reservationService.findUsersOfReservationById(id);
+        return users;
+    }
+
 
 
 

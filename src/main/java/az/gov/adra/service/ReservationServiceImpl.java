@@ -4,6 +4,7 @@ import az.gov.adra.dataTransferObjects.ReservationDTO;
 import az.gov.adra.dataTransferObjects.ReservationDTOForAdd;
 import az.gov.adra.dataTransferObjects.ReservationDTOForUpdate;
 import az.gov.adra.entity.Reservation;
+import az.gov.adra.entity.User;
 import az.gov.adra.exception.ReservationCredentialsException;
 import az.gov.adra.repository.interfaces.ReservationRepository;
 import az.gov.adra.service.interfaces.ReservationService;
@@ -46,6 +47,11 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public void updateReservation(ReservationDTOForUpdate dto) throws ReservationCredentialsException {
         reservationRepository.updateReservation(dto);
+    }
+
+    @Override
+    public List<User> findUsersOfReservationById(long id) {
+        return reservationRepository.findUsersOfReservationById(id);
     }
 
     @Override
