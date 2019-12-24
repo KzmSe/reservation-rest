@@ -1,6 +1,8 @@
 package az.gov.adra.service;
 
 import az.gov.adra.dataTransferObjects.ReservationDTO;
+import az.gov.adra.dataTransferObjects.ReservationDTOForAdd;
+import az.gov.adra.dataTransferObjects.ReservationDTOForUpdate;
 import az.gov.adra.entity.Reservation;
 import az.gov.adra.exception.ReservationCredentialsException;
 import az.gov.adra.repository.interfaces.ReservationRepository;
@@ -34,6 +36,31 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<ReservationDTO> findReservationsWhichIJoined(String username, int status, int fetchNext) {
         return reservationRepository.findReservationsWhichIJoined(username, status, fetchNext);
+    }
+
+    @Override
+    public void addReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException {
+        reservationRepository.addReservation(dto);
+    }
+
+    @Override
+    public void updateReservation(ReservationDTOForUpdate dto) throws ReservationCredentialsException {
+        reservationRepository.updateReservation(dto);
+    }
+
+    @Override
+    public void isReservationExistWithGivenId(long id) throws ReservationCredentialsException {
+        reservationRepository.isReservationExistWithGivenId(id);
+    }
+
+    @Override
+    public void isReservationExistWithGivenReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException {
+        reservationRepository.isReservationExistWithGivenReservation(dto);
+    }
+
+    @Override
+    public void deleteReservation(Reservation reservation) throws ReservationCredentialsException {
+        reservationRepository.deleteReservation(reservation);
     }
 
 //    @Override

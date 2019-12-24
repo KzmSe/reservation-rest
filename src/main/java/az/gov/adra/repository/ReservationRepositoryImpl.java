@@ -3,18 +3,26 @@ package az.gov.adra.repository;
 import az.gov.adra.constant.MessageConstants;
 import az.gov.adra.constant.ReservationConstants;
 import az.gov.adra.dataTransferObjects.ReservationDTO;
+import az.gov.adra.dataTransferObjects.ReservationDTOForAdd;
+import az.gov.adra.dataTransferObjects.ReservationDTOForUpdate;
 import az.gov.adra.entity.*;
 import az.gov.adra.exception.ReservationCredentialsException;
 import az.gov.adra.repository.interfaces.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,11 +31,17 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
     private static final String FIND_ALL_RESERVATIONS_BY_STATUS_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room, u.name, u.surname, u.username from Reservation res inner join Room room on res.room_id = room.id inner join users u on res.username = u.username where res.status = ? order by res.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     private static final String FIND_MY_RESERVATIONS_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room from Reservation res inner join Room room on res.room_id = room.id where res.username = ? and res.status = ? order by res.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    private static final String FIND_RESERVATIONS_WHICH_I_JOINED_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room from Reservation_users ru inner join Reservation res on ru.reservation_id = res.id inner join Room room on res.room_id = room.id where ru.username = ? and res.status = ? order by res.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String FIND_RESERVATIONS_WHICH_I_JOINED_SQL = "select ROW_NUMBER() OVER (ORDER BY (re.date) desc) AS number, re.id, re.topic, re.date, re.start_time, re.end_time, room.name as room, u.name, u.surname, u.username from Reservation re inner join Reservation_users ru on re.id = ru.reservation_id inner join Room room on re.room_id = room.id inner join users u on re.username = u.username where ru.username = ? and re.status = ? order by re.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String ADD_RESERVATION_SQL = "insert into Reservation(username, topic, date, start_time, end_time, room_id, status) values (?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_RESERVATION_SQL = "update Reservation set topic = ?, date = ?, start_time = ?, end_time = ?, room_id = ? where id = ? and username = ? and status = ?";
+    private static final String DELETE_USERS_OF_RESERVATION_SQL = "delete from Reservation_users where reservation_id = ?";
+    private static final String ADD_USERS_OF_RESERVATION_SQL = "insert into Reservation_users(username, reservation_id) values(?, ?)";
+    private static final String IS_RESERVATION_EXIST_WITH_GIVEN_ID_SQL = "select count(*) as count from Reservation where id = ? and status = ?";
+    private static final String IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL = "select count(*) as count from Reservation where ((? between start_time and end_time or ? between start_time and end_time) or (start_time between ? and ? or end_time between ? and ?)) and date = ? and room_id = ? and status = ?";
+    private static final String DELETE_RESERVATION_SQL = "update Reservation set status = ? where id = ? and username = ?";
 
     private static final String findReservationByIdSql = "select res.id as reservation_id, res.fullname, res.topic, res.date, res.start_time, res.end_time, room.name, res.status, room.id as room_id, room.name from Reservation res inner join Room room on res.room_id = room.id where res.id = ?";
     private static final String findReservationsByEmployeeIdSql = "select res.id as reservation_id, res.fullname, res.topic, res.date, res.start_time, res.end_time, room.id as room_id, room.name, res.status, res.status2, ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number from Reservation res inner join Room room on res.room_id = room.id where res.employee_id = ? and ((res.status = ? and res.status2 = ?) or (status = ? and res.status2 = ?)) order by res.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    private static final String addReservationSql = "insert into Reservation(employee_id, fullname, topic, date, start_time, end_time, room_id, status, status2) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String updateReservationSql = "update Reservation set fullname = ?, topic = ?, date = ?, start_time = ?, end_time = ?, room_id = ? where id = ?";
     private static final String deleteReservationByIdSql = "update Reservation set status = ? where id = ? and employee_id = ?";
     private static final String isReservationExistSql = "select count(*) as count from Reservation where ((? between start_time and end_time or ?  between start_time and end_time) or (start_time between  ? and ? or end_time between  ? and ?)) and date = ? and room_id = ? and status = ?";
@@ -123,6 +137,13 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                     Room room = new Room();
                     room.setName(rs.getString("room"));
 
+                    User user = new User();
+                    user.setName(rs.getString("name"));
+                    user.setSurname(rs.getString("surname"));
+                    user.setUsername(rs.getString("username"));
+
+                    reservation.setUser(user);
+
                     reservation.setRoom(room);
 
                     list.add(reservation);
@@ -134,18 +155,72 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         return reservationList;
     }
 
-//    @Override
-//    public void addReservation(Reservation reservation) throws ReservationCredentialsException {
-//        if (isReservationExist(reservation)) {
-//            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_RESERVATION_ALREADY_EXIST);
-//        }
-//
-//        int affectedRows = jdbcTemplate.update(addReservationSql, reservation.getEmployee().getId(), reservation.getFullname(), reservation.getTopic(), reservation.getDate(), reservation.getStartTime(), reservation.getEndTime(), reservation.getRoom().getId(), reservation.getStatus(), reservation.getStatus2());
-//        if (affectedRows == 0) {
-//            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_INTERNAL_ERROR);
-//        }
-//    }
-//
+    @Override
+    public void addReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException {
+        //add reservation
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(new PreparedStatementCreator() {
+            @Override
+            public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                PreparedStatement ps = connection.prepareStatement(ADD_RESERVATION_SQL, new String[] {"id"});
+                ps.setString(1, dto.getCreateUser());
+                ps.setString(2, dto.getTopic());
+                ps.setString(3, dto.getDate().toString());
+                ps.setString(4, dto.getStartTime().toString());
+                ps.setString(5, dto.getEndTime().toString());
+                ps.setLong(6, dto.getRoomId());
+                ps.setInt(7, dto.getStatus());
+
+                return ps;
+            }
+        }, keyHolder);
+
+        //in addition to add reservation, add users of reservation
+        Arrays.stream(dto.getUsers()).forEach(username -> {
+            jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, username, keyHolder.getKey());
+        });
+    }
+
+    @Override
+    public void updateReservation(ReservationDTOForUpdate dto) throws ReservationCredentialsException {
+        //update reservation
+        int affectedRows = jdbcTemplate.update(UPDATE_RESERVATION_SQL, dto.getTopic(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId(), dto.getId(), dto.getCreateUser(), dto.getStatus());
+        if (affectedRows == 0) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_INTERNAL_ERROR);
+        }
+
+        //in addition to update reservation, update users of reservation
+        jdbcTemplate.update(DELETE_USERS_OF_RESERVATION_SQL, dto.getId());
+
+        Arrays.stream(dto.getUsers()).forEach(username -> {
+            jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, username, dto.getId());
+        });
+    }
+
+    @Override
+    public void isReservationExistWithGivenId(long id) throws ReservationCredentialsException {
+        int count = jdbcTemplate.queryForObject(IS_RESERVATION_EXIST_WITH_GIVEN_ID_SQL, new Object[] {id, ReservationConstants.RESERVATION_STATUS_ACTIVE}, Integer.class);
+        if (count <= 0) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_RESERVATION_NOT_FOUND);
+        }
+    }
+
+    @Override
+    public void isReservationExistWithGivenReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException {
+        int count = jdbcTemplate.queryForObject(IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL, new Object[] {dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getDate().toString(), dto.getRoomId(), dto.getStatus()}, Integer.class);
+        if (count > 0) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_RESERVATION_ALREADY_EXIST);
+        }
+    }
+
+    @Override
+    public void deleteReservation(Reservation reservation) throws ReservationCredentialsException {
+        int affectedRows = jdbcTemplate.update(DELETE_RESERVATION_SQL, ReservationConstants.RESERVATION_STATUS_DELETED, reservation.getId(), reservation.getUser().getUsername());
+        if (affectedRows == 0) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_INTERNAL_ERROR);
+        }
+    }
+
 //    @Override
 //    public Reservation findReservationById(long id) {
 //

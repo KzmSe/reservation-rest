@@ -1,11 +1,6 @@
 package az.gov.adra.mappers;
 
-import az.gov.adra.dataTransferObjects.ReservationForUpdateDTO;
-import az.gov.adra.entity.Reservation;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface ReservationMapper {

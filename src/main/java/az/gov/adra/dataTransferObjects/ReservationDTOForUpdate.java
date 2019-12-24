@@ -10,8 +10,9 @@ import java.time.LocalTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReservationDTOForAdd {
+public class ReservationDTOForUpdate {
 
+    private Long id;
     private String topic;
     private LocalDate date;
     private String createUser;
