@@ -2,8 +2,6 @@ package az.gov.adra.controller;
 
 import az.gov.adra.constant.MessageConstants;
 import az.gov.adra.dataTransferObjects.ReservationDTO;
-import az.gov.adra.dataTransferObjects.ReservationDTOForAdd;
-import az.gov.adra.dataTransferObjects.ReservationDTOForUpdate;
 import az.gov.adra.entity.Reservation;
 import az.gov.adra.entity.User;
 import az.gov.adra.entity.response.GenericResponse;
@@ -17,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-
-import static jdk.nashorn.internal.runtime.Debug.id;
 
 @RestController
 public class ReservationController {
@@ -68,50 +64,34 @@ public class ReservationController {
     @PostMapping("/reservations")
     @PreAuthorize("hasRole('ROLE_USER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public void addReservation(@RequestBody ReservationDTOForAdd dto,
+    public void addReservation(@RequestBody ReservationDTO dto,
                                Principal principal) throws ReservationCredentialsException {
-        dto.setCreateUser(principal.getName());
-        //reservationService.isReservationExistWithGivenReservation(dto);
+        User createUser = new User();
+        createUser.setUsername(principal.getName());
+        dto.setCreateUser(createUser);
+        reservationService.isReservationExistWithGivenReservation(dto);
         reservationService.addReservation(dto);
     }
 
     @PutMapping("/reservations")
     @PreAuthorize("hasRole('ROLE_USER')")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateReservation(@RequestBody ReservationDTOForUpdate dto,
+    public void updateReservation(@RequestBody ReservationDTO dto,
                                   Principal principal) throws ReservationCredentialsException {
-        dto.setCreateUser(principal.getName());
-        //reservationService.isReservationExistWithGivenReservation(dto);
+        User createUser = new User();
+        createUser.setUsername(principal.getName());
+        dto.setCreateUser(createUser);
+        reservationService.isReservationExistWithGivenReservation(dto);
         reservationService.updateReservation(dto);
     }
 
-    @GetMapping("/reservations/{reservationId}/users")
+    @GetMapping("/reservations/{reservationId}/participants")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public List<User> findUsersOfReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
+    public GenericResponse findUsersOfReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
         reservationService.isReservationExistWithGivenId(id);
         List<User> users = reservationService.findUsersOfReservationById(id);
-        return users;
+        return GenericResponse.withSuccess(HttpStatus.OK, "participants of specific reservation", users);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @DeleteMapping("/reservations/{reservationId}")
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -130,6 +110,21 @@ public class ReservationController {
         reservation.setUser(user);
 
         reservationService.deleteReservation(reservation);
+    }
+
+    @GetMapping("/reservations/{reservationId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public GenericResponse findReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
+        if (ValidationUtil.isNull(id)) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
+        }
+        reservationService.isReservationExistWithGivenId(id);
+
+        ReservationDTO reservation = reservationService.findReservationById(id);
+        List<User> users = reservationService.findUsersOfReservationById(id);
+        reservation.setParticipants(users);
+
+        return GenericResponse.withSuccess(HttpStatus.OK, "specific reservation by id", reservation);
     }
 
 }

@@ -1,8 +1,6 @@
 package az.gov.adra.service;
 
 import az.gov.adra.dataTransferObjects.ReservationDTO;
-import az.gov.adra.dataTransferObjects.ReservationDTOForAdd;
-import az.gov.adra.dataTransferObjects.ReservationDTOForUpdate;
 import az.gov.adra.entity.Reservation;
 import az.gov.adra.entity.User;
 import az.gov.adra.exception.ReservationCredentialsException;
@@ -23,7 +21,6 @@ public class ReservationServiceImpl implements ReservationService {
         this.reservationRepository = reservationRepository;
     }
 
-
     @Override
     public List<ReservationDTO> findAllReservationsByStatus(int status, int fetchNext) {
         return reservationRepository.findAllReservationsByStatus(status, fetchNext);
@@ -40,12 +37,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void addReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException {
+    public void addReservation(ReservationDTO dto) throws ReservationCredentialsException {
         reservationRepository.addReservation(dto);
     }
 
     @Override
-    public void updateReservation(ReservationDTOForUpdate dto) throws ReservationCredentialsException {
+    public void updateReservation(ReservationDTO dto) throws ReservationCredentialsException {
         reservationRepository.updateReservation(dto);
     }
 
@@ -60,7 +57,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void isReservationExistWithGivenReservation(ReservationDTOForAdd dto) throws ReservationCredentialsException {
+    public void isReservationExistWithGivenReservation(ReservationDTO dto) throws ReservationCredentialsException {
         reservationRepository.isReservationExistWithGivenReservation(dto);
     }
 
@@ -69,45 +66,10 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.deleteReservation(reservation);
     }
 
-//    @Override
-//    public void addReservation(Reservation reservation) throws ReservationCredentialsException {
-//        reservationRepository.addReservation(reservation);
-//    }
-//
-//    @Override
-//    public Reservation findReservationById(long id) {
-//        return reservationRepository.findReservationById(id);
-//    }
-//
-//    @Override
-//    public List<ReservationDTO> findReservationsByEmployeeId(int employeeId, int fetchNext) {
-//        return reservationRepository.findReservationsByEmployeeId(employeeId, fetchNext);
-//    }
-//
-//    @Override
-//    public void updateReservation(Reservation reservation, boolean hasChanged) throws ReservationCredentialsException {
-//        reservationRepository.updateReservation(reservation, hasChanged);
-//    }
-//
-//    @Override
-//    public void deleteReservationById(long reservationId, int employeeId) throws ReservationCredentialsException {
-//        reservationRepository.deleteReservationById(reservationId, employeeId);
-//    }
-//
-//    @Override
-//    public List<ReservationDTO> findReservationsByStatusAndStatus2(int status, int status2, int fetchNext) {
-//        return reservationRepository.findReservationsByStatusAndStatus2(status, status2, fetchNext);
-//    }
-//
-//    @Override
-//    public void updateReservationStatusAndStatus2(int status, int status2, int reservationId, int employeeId) throws ReservationCredentialsException {
-//        reservationRepository.updateReservationStatusAndStatus2(status, status2, reservationId, employeeId);
-//    }
-//
-//    @Override
-//    public void updateReservationStatus() {
-//        reservationRepository.updateReservationStatus();
-//    }
+    @Override
+    public ReservationDTO findReservationById(long id) {
+        return reservationRepository.findReservationById(id);
+    }
 
 }
 

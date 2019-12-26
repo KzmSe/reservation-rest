@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Date;
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -22,8 +23,10 @@ public class ReservationDTO {
     private Date date;
     private LocalTime startTime;
     private LocalTime endTime;
+    private User createUser;
+    private List<User> participants;
     private Room room;
-    private User user;
+    private Integer status;
 
 
 }
