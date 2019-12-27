@@ -7,6 +7,7 @@ import az.gov.adra.entity.User;
 import az.gov.adra.entity.response.GenericResponse;
 import az.gov.adra.exception.ReservationCredentialsException;
 import az.gov.adra.service.interfaces.ReservationService;
+import az.gov.adra.util.EmailSenderUtil;
 import az.gov.adra.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,8 @@ public class ReservationController {
 
     @Autowired
     private ReservationService reservationService;
+    @Autowired
+    private EmailSenderUtil emailSenderUtil;
 
 
     @GetMapping("/reservations")
@@ -71,6 +74,10 @@ public class ReservationController {
         dto.setCreateUser(createUser);
         reservationService.isReservationExistWithGivenReservation(dto);
         reservationService.addReservation(dto);
+
+//        dto.getParticipants().forEach(user -> {
+//            emailSenderUtil.sendEmailMessage(user.getUsername(), "Reservasiya bildirisi!", "Bu tarixlerde reservasiyaya daxil edilmisiniz...");
+//        });
     }
 
     @PutMapping("/reservations")
