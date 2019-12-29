@@ -165,10 +165,10 @@ public class ReservationRepositoryImpl implements ReservationRepository {
             }
         }, keyHolder);
 
-        //in addition to add reservation, add users of reservation
-        dto.getParticipants().forEach(user -> {
-            jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, user.getUsername(), keyHolder.getKey());
-        });
+//        //in addition to add reservation, add users of reservation
+//        dto.getParticipants().forEach(user -> {
+//            jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, user.getUsername(), keyHolder.getKey());
+//        });
     }
 
     @Override
@@ -179,12 +179,12 @@ public class ReservationRepositoryImpl implements ReservationRepository {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_INTERNAL_ERROR);
         }
 
-        //in addition to update reservation, update users of reservation
-        jdbcTemplate.update(DELETE_USERS_OF_RESERVATION_SQL, dto.getId());
-
-        dto.getParticipants().forEach(user -> {
-            jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, user.getUsername(), dto.getId());
-        });
+//        //in addition to update reservation, update users of reservation
+//        jdbcTemplate.update(DELETE_USERS_OF_RESERVATION_SQL, dto.getId());
+//
+//        dto.getParticipants().forEach(user -> {
+//            jdbcTemplate.update(ADD_USERS_OF_RESERVATION_SQL, user.getUsername(), dto.getId());
+//        });
     }
 
     @Override

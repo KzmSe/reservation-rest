@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class ReservationController {
@@ -75,9 +78,7 @@ public class ReservationController {
         reservationService.isReservationExistWithGivenReservation(dto);
         reservationService.addReservation(dto);
 
-//        dto.getParticipants().forEach(user -> {
-//            emailSenderUtil.sendEmailMessage(user.getUsername(), "Reservasiya bildirisi!", "Bu tarixlerde reservasiyaya daxil edilmisiniz...");
-//        });
+        //sendEmailJob(dto);
     }
 
     @PutMapping("/reservations")
@@ -133,5 +134,25 @@ public class ReservationController {
 
         return GenericResponse.withSuccess(HttpStatus.OK, "specific reservation by id", reservation);
     }
+
+//    //private methods
+//    private void sendEmailJob(ReservationDTO dto) {
+//        if (dto.getParticipants() != null && dto.getParticipants().size() != 0) {
+//            ExecutorService service = Executors.newSingleThreadExecutor();
+//
+//            Runnable runnableTask = () -> {
+//                dto.getParticipants().forEach(user -> {
+//                    emailSenderUtil.sendEmailMessage(user.getUsername(), "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
+//                            "Mövzu: " + dto.getTopic() + "\n" +
+//                                    "Tarix: " + dto.getDate().toString() + "\n" +
+//                                    "Başlama saatı: " + dto.getStartTime().toString() + "\n" +
+//                                    "Bitmə saatı: " + dto.getEndTime().toString() + "\n" +
+//                                    "Otaq: " + dto.getRoom().getId());
+//                });
+//            };
+//            service.submit(runnableTask);
+//            service.shutdown();
+//        }
+//    }
 
 }
