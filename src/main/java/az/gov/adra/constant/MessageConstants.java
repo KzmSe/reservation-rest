@@ -26,6 +26,7 @@ public class MessageConstants {
     public static final String ERROR_MESSAGE_RESERVATION_TIME = "Reservasiya vaxtı düzgün deyil!";
     public static final String ERROR_MESSAGE_DELETE_RESERVATION = "Bu reservasiyanı silmək hüququnuz yoxdur!";
     public static final String ERROR_MESSAGE_UPDATE_RESERVATION = "Bu reservasiyanı redaktə etmək hüququnuz yoxdur!";
+    public static final String ERROR_MESSAGE_STARTTIME_MUST_BE_BEFORE_THAN_ENDTIME = "Rezervasiyanın başlama tarixi bitmə tarixindən əvvəl olmalıdır!";
 
     //success messages
     public static final String SUCCESS_MESSAGE_PASSWORD_SUCCESSFULLY_CHANGED = "Şifrə uğurla yeniləndi!";

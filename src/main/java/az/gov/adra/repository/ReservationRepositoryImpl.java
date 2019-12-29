@@ -158,8 +158,9 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                 ps.setString(3, dto.getDate().toString());
                 ps.setString(4, dto.getStartTime().toString());
                 ps.setString(5, dto.getEndTime().toString());
-                ps.setLong(6, dto.getRoom().getId());
-                ps.setInt(7, dto.getStatus());
+                //ps.setLong(6, dto.getRoom().getId());
+                ps.setLong(6, dto.getRoomId());
+                ps.setInt(7, ReservationConstants.RESERVATION_STATUS_ACTIVE);
 
                 return ps;
             }
@@ -174,7 +175,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     @Override
     public void updateReservation(ReservationDTO dto) throws ReservationCredentialsException {
         //update reservation
-        int affectedRows = jdbcTemplate.update(UPDATE_RESERVATION_SQL, dto.getTopic(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoom().getId(), dto.getId(), dto.getCreateUser().getUsername(), dto.getStatus());
+        int affectedRows = jdbcTemplate.update(UPDATE_RESERVATION_SQL, dto.getTopic(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId(), dto.getId(), dto.getCreateUser().getUsername(), ReservationConstants.RESERVATION_STATUS_ACTIVE);
         if (affectedRows == 0) {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_INTERNAL_ERROR);
         }
@@ -218,7 +219,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
     @Override
     public void isReservationExistWithGivenReservation(ReservationDTO dto) throws ReservationCredentialsException {
-        int count = jdbcTemplate.queryForObject(IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL, new Object[] {dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getDate().toString(), dto.getRoom().getId(), dto.getStatus()}, Integer.class);
+        int count = jdbcTemplate.queryForObject(IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL, new Object[] {dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getDate().toString(), dto.getRoomId(), ReservationConstants.RESERVATION_STATUS_ACTIVE}, Integer.class);
         if (count > 0) {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_RESERVATION_ALREADY_EXIST);
         }

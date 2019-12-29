@@ -1,17 +1,11 @@
 <component name="ArtifactManager">
-  <artifact type="exploded-war" name="reservation-rest:war exploded">
-    <output-path>$PROJECT_DIR$/target/reservation-rest-0.0.1-SNAPSHOT</output-path>
-    <properties id="maven-jee-properties">
-      <options>
-        <exploded>true</exploded>
-        <module>reservation-rest</module>
-        <packaging>war</packaging>
-      </options>
-    </properties>
-    <root id="root">
+  <artifact type="war" name="reservation">
+    <output-path>$PROJECT_DIR$/classes/artifacts/reservation</output-path>
+    <root id="archive" name="reservation.war">
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
           <element id="module-output" name="reservation-rest" />
+          <element id="jpa-descriptors" facet="reservation-rest/jpa/JPA" />
         </element>
         <element id="directory" name="lib">
           <element id="library" level="project" name="Maven: org.springframework.boot:spring-boot-starter-web:2.1.10.RELEASE" />
@@ -55,6 +49,7 @@
           <element id="library" level="project" name="Maven: org.springframework.security:spring-security-jwt:1.0.9.RELEASE" />
           <element id="library" level="project" name="Maven: org.bouncycastle:bcpkix-jdk15on:1.56" />
           <element id="library" level="project" name="Maven: org.bouncycastle:bcprov-jdk15on:1.56" />
+          <element id="library" level="project" name="Maven: org.springframework.boot:spring-boot-configuration-processor:2.1.10.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework.boot:spring-boot-starter-security:2.1.10.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework:spring-aop:5.1.11.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework.security:spring-security-config:5.1.7.RELEASE" />
@@ -86,6 +81,7 @@
           <element id="library" level="project" name="Maven: com.zaxxer:HikariCP:3.2.0" />
           <element id="library" level="project" name="Maven: org.springframework:spring-jdbc:5.1.11.RELEASE" />
           <element id="library" level="project" name="Maven: com.microsoft.sqlserver:mssql-jdbc:6.4.0.jre8" />
+          <element id="library" level="project" name="Maven: org.projectlombok:lombok:1.18.10" />
           <element id="library" level="project" name="Maven: javax.annotation:javax.annotation-api:1.3.2" />
           <element id="library" level="project" name="Maven: org.springframework:spring-core:5.1.11.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework:spring-jcl:5.1.11.RELEASE" />
@@ -96,10 +92,10 @@
           <element id="library" level="project" name="Maven: javax.activation:activation:1.1" />
         </element>
       </element>
-      <element id="directory" name="META-INF">
-        <element id="file-copy" path="$PROJECT_DIR$/target/reservation-rest-0.0.1-SNAPSHOT/META-INF/MANIFEST.MF" />
-      </element>
       <element id="javaee-facet-resources" facet="reservation-rest/web/Web" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/main/java/META-INF/MANIFEST.MF" />
+      </element>
     </root>
   </artifact>
 </component>

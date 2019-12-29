@@ -8,6 +8,7 @@ import az.gov.adra.entity.response.GenericResponse;
 import az.gov.adra.exception.ReservationCredentialsException;
 import az.gov.adra.service.interfaces.ReservationService;
 import az.gov.adra.util.EmailSenderUtil;
+import az.gov.adra.util.TimeUtil;
 import az.gov.adra.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,13 +74,18 @@ public class ReservationController {
     @ResponseStatus(HttpStatus.CREATED)
     public void addReservation(@RequestBody ReservationDTO dto,
                                Principal principal) throws ReservationCredentialsException {
+        if (ValidationUtil.isNullOrEmpty(dto.getTopic()) || ValidationUtil.isNull(dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId())) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
+        }
+        TimeUtil.checkTime(dto.getStartTime(), dto.getEndTime());
+
         User createUser = new User();
         createUser.setUsername(principal.getName());
         dto.setCreateUser(createUser);
         reservationService.isReservationExistWithGivenReservation(dto);
         reservationService.addReservation(dto);
 
-        //sendEmailJob(dto);
+        sendSpecialEmailJob(dto);
     }
 
     @PutMapping("/reservations")
@@ -86,6 +93,11 @@ public class ReservationController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateReservation(@RequestBody ReservationDTO dto,
                                   Principal principal) throws ReservationCredentialsException {
+        if (ValidationUtil.isNullOrEmpty(dto.getTopic()) || ValidationUtil.isNull(dto.getId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId())) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
+        }
+        TimeUtil.checkTime(dto.getStartTime(), dto.getEndTime());
+
         User createUser = new User();
         createUser.setUsername(principal.getName());
         dto.setCreateUser(createUser);
@@ -154,5 +166,30 @@ public class ReservationController {
 //            service.shutdown();
 //        }
 //    }
+
+
+    private void sendSpecialEmailJob(ReservationDTO dto) {
+        ExecutorService service = Executors.newSingleThreadExecutor();
+
+        List<String> list = new ArrayList<>();
+        String user1 = dto.getCreateUser().getUsername();
+        String user2 = "senan0144@gmail.com";
+
+        list.add(user1);
+        list.add(user2);
+
+        Runnable runnableTask = () -> {
+            list.forEach(user -> {
+                emailSenderUtil.sendEmailMessage(user, "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
+                        "Mövzu: " + dto.getTopic() + "\n" +
+                                "Tarix: " + dto.getDate().toString() + "\n" +
+                                "Başlama saatı: " + dto.getStartTime().toString() + "\n" +
+                                "Bitmə saatı: " + dto.getEndTime().toString() + "\n" +
+                                "Otaq: " + dto.getRoomId());
+            });
+        };
+        service.submit(runnableTask);
+        service.shutdown();
+    }
 
 }

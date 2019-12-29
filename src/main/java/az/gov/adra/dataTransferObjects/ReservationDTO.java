@@ -26,8 +26,8 @@ public class ReservationDTO {
     private User createUser;
     private List<User> participants;
     private Room room;
+    private Integer roomId;
     private Integer status;
-
 
 }
 
