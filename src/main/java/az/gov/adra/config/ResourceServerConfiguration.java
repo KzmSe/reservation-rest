@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
@@ -24,6 +25,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Configuration
 @EnableResourceServer
+@EnableScheduling
 @EnableConfigurationProperties(SecurityProperties.class)
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 

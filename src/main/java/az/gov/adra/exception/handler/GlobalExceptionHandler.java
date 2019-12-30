@@ -8,6 +8,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,6 +19,7 @@ public class GlobalExceptionHandler {
     private String appName;
 
     @ExceptionHandler(DataAccessException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public GenericResponse handleDataAccessException(DataAccessException e) {
         //Exception
         Exception exception = new Exception();
@@ -29,6 +31,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NumberFormatException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public GenericResponse handleNumberFormatException(NumberFormatException e) {
         //Exception
         Exception exception = new Exception();
@@ -40,6 +43,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ReservationCredentialsException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public GenericResponse handleReservationCredentialsException(ReservationCredentialsException e) {
         //Exception
         Exception exception = new Exception();

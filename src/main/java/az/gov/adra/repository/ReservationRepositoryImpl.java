@@ -26,18 +26,20 @@ import java.util.List;
 @Repository
 public class ReservationRepositoryImpl implements ReservationRepository {
 
-    private static final String FIND_ALL_RESERVATIONS_BY_STATUS_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room, u.name, u.surname, u.username from Reservation res inner join Room room on res.room_id = room.id inner join users u on res.username = u.username where res.status = ? order by res.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    private static final String FIND_MY_RESERVATIONS_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room from Reservation res inner join Room room on res.room_id = room.id where res.username = ? and res.status = ? order by res.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    private static final String FIND_RESERVATIONS_WHICH_I_JOINED_SQL = "select ROW_NUMBER() OVER (ORDER BY (re.date) desc) AS number, re.id, re.topic, re.date, re.start_time, re.end_time, room.name as room, u.name, u.surname, u.username from Reservation re inner join Reservation_users ru on re.id = ru.reservation_id inner join Room room on re.room_id = room.id inner join users u on re.username = u.username where ru.username = ? and re.status = ? order by re.date desc OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String FIND_ALL_RESERVATIONS_BY_STATUS_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room, u.name, u.surname, u.username from Reservation res inner join Room room on res.room_id = room.id inner join users u on res.username = u.username where res.status = ? order by res.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String FIND_MY_RESERVATIONS_SQL = "select ROW_NUMBER() OVER (ORDER BY (res.date) desc) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room from Reservation res inner join Room room on res.room_id = room.id where res.username = ? and res.status = ? order by res.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String FIND_RESERVATIONS_WHICH_I_JOINED_SQL = "select ROW_NUMBER() OVER (ORDER BY (re.date) desc) AS number, re.id, re.topic, re.date, re.start_time, re.end_time, room.name as room, u.name, u.surname, u.username from Reservation re inner join Reservation_users ru on re.id = ru.reservation_id inner join Room room on re.room_id = room.id inner join users u on re.username = u.username where ru.username = ? and re.status = ? order by re.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     private static final String ADD_RESERVATION_SQL = "insert into Reservation(username, topic, date, start_time, end_time, room_id, status) values (?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_RESERVATION_SQL = "update Reservation set topic = ?, date = ?, start_time = ?, end_time = ?, room_id = ? where id = ? and username = ? and status = ?";
     private static final String DELETE_USERS_OF_RESERVATION_SQL = "delete from Reservation_users where reservation_id = ?";
     private static final String FIND_USERS_OF_RESERVATION_BY_ID = "select u.username, u.name, u.surname from Reservation_users ru inner join users u on ru.username = u.username where ru.reservation_id = ?";
     private static final String ADD_USERS_OF_RESERVATION_SQL = "insert into Reservation_users(username, reservation_id) values(?, ?)";
     private static final String IS_RESERVATION_EXIST_WITH_GIVEN_ID_SQL = "select count(*) as count from Reservation where id = ? and status = ?";
-    private static final String IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL = "select count(*) as count from Reservation where ((? between start_time and end_time or ? between start_time and end_time) or (start_time between ? and ? or end_time between ? and ?)) and date = ? and room_id = ? and status = ?";
+    private static final String IS_RESERVATION_EXIST_WITH_GIVEN_DATE_AND_TIME_SQL = "select count(*) as count from Reservation where ((? between start_time and end_time or ? between start_time and end_time) or (start_time between ? and ? or end_time between ? and ?)) and date = ? and room_id = ? and status = ?";
     private static final String DELETE_RESERVATION_SQL = "update Reservation set status = ? where id = ? and username = ?";
-    private static final String FIND_RESERVATION_BY_ID_SQL = "select topic, date, start_time, end_time, room_id from Reservation where id = ? and status = ?";
+    private static final String FIND_RESERVATION_BY_ID_SQL = "select re.topic, re.date, re.start_time, re.end_time, ro.id as room_id, ro.name as room_name from Reservation re inner join Room ro on re.room_id = ro.id where re.id = ? and status = ?";
+    private static final String UPDATE_RESERVATION_STATUS_SQL = "update Reservation set status = ? where date <= CONVERT(DATE, GETDATE()) and end_time <= CONVERT(time, CURRENT_TIMESTAMP) and status = ?";
+
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -54,7 +56,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                     reservation.setRowNumber(rs.getInt("number"));
                     reservation.setId(rs.getLong("id"));
                     reservation.setTopic(rs.getString("topic"));
-                    reservation.setDate(rs.getDate("date"));
+                    reservation.setDate(rs.getDate("date").toLocalDate());
                     reservation.setStartTime(rs.getTime("start_time").toLocalTime());
                     reservation.setEndTime(rs.getTime("end_time").toLocalTime());
 
@@ -90,7 +92,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                     reservation.setRowNumber(rs.getInt("number"));
                     reservation.setId(rs.getLong("id"));
                     reservation.setTopic(rs.getString("topic"));
-                    reservation.setDate(rs.getDate("date"));
+                    reservation.setDate(rs.getDate("date").toLocalDate());
                     reservation.setStartTime(rs.getTime("start_time").toLocalTime());
                     reservation.setEndTime(rs.getTime("end_time").toLocalTime());
 
@@ -120,7 +122,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                     reservation.setRowNumber(rs.getInt("number"));
                     reservation.setId(rs.getLong("id"));
                     reservation.setTopic(rs.getString("topic"));
-                    reservation.setDate(rs.getDate("date"));
+                    reservation.setDate(rs.getDate("date").toLocalDate());
                     reservation.setStartTime(rs.getTime("start_time").toLocalTime());
                     reservation.setEndTime(rs.getTime("end_time").toLocalTime());
 
@@ -218,8 +220,8 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public void isReservationExistWithGivenReservation(ReservationDTO dto) throws ReservationCredentialsException {
-        int count = jdbcTemplate.queryForObject(IS_RESERVATION_EXIST_WITH_GIVEN_RESERVATION_SQL, new Object[] {dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getDate().toString(), dto.getRoomId(), ReservationConstants.RESERVATION_STATUS_ACTIVE}, Integer.class);
+    public void isReservationExistWithGivenDateAndTime(ReservationDTO dto) throws ReservationCredentialsException {
+        int count = jdbcTemplate.queryForObject(IS_RESERVATION_EXIST_WITH_GIVEN_DATE_AND_TIME_SQL, new Object[] {dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getStartTime().toString(), dto.getEndTime().toString(), dto.getDate().toString(), dto.getRoomId(), ReservationConstants.RESERVATION_STATUS_ACTIVE}, Integer.class);
         if (count > 0) {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_RESERVATION_ALREADY_EXIST);
         }
@@ -242,12 +244,13 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
                 while (rs.next()) {
                     dto.setTopic(rs.getString("topic"));
-                    dto.setDate(rs.getDate("date"));
+                    dto.setDate(rs.getDate("date").toLocalDate());
                     dto.setStartTime(rs.getTime("start_time").toLocalTime());
                     dto.setEndTime(rs.getTime("end_time").toLocalTime());
 
                     Room room = new Room();
-                    room.setName(rs.getString("room_id"));
+                    room.setId(rs.getInt("room_id"));
+                    room.setName(rs.getString("room_name"));
 
                     dto.setRoom(room);
                 }
@@ -256,6 +259,11 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         });
 
         return reservation;
+    }
+
+    @Override
+    public void updateReservationStatus() {
+        jdbcTemplate.update(UPDATE_RESERVATION_STATUS_SQL, ReservationConstants.RESERVATION_STATUS_FINISHED, ReservationConstants.RESERVATION_STATUS_ACTIVE);
     }
 
 }

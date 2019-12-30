@@ -29,7 +29,7 @@ public class RoomRepositoryImpl implements RoomRepository {
                 List<Room> list = new LinkedList<>();
                 while(rs.next()){
                     Room room = new Room();
-                    room.setId(rs.getLong("id"));
+                    room.setId(rs.getInt("id"));
                     room.setName(rs.getString("name"));
                     list.add(room);
                 }

@@ -13,6 +13,13 @@ public class EmailSenderUtil {
 
     public void sendEmailMessage(String to, String subject, String body) {
         try {
+//            MimeMessage message = emailSender.createMimeMessage();
+//            message.setHeader("Content-Type", "text/plain; charset=UTF-8");
+//            message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
+//            message.setSubject(subject, "utf-8");
+//            message.setContent(body, "utf-8");
+//            emailSender.send(message);
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject(subject);

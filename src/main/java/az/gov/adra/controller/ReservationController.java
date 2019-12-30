@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 public class ReservationController {
@@ -82,7 +81,7 @@ public class ReservationController {
         User createUser = new User();
         createUser.setUsername(principal.getName());
         dto.setCreateUser(createUser);
-        reservationService.isReservationExistWithGivenReservation(dto);
+        reservationService.isReservationExistWithGivenDateAndTime(dto);
         reservationService.addReservation(dto);
 
         sendSpecialEmailJob(dto);
@@ -93,15 +92,32 @@ public class ReservationController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateReservation(@RequestBody ReservationDTO dto,
                                   Principal principal) throws ReservationCredentialsException {
+        //validation
         if (ValidationUtil.isNullOrEmpty(dto.getTopic()) || ValidationUtil.isNull(dto.getId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId())) {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
         }
+
+        //check time
         TimeUtil.checkTime(dto.getStartTime(), dto.getEndTime());
+
+        //get current reservation from db
+        ReservationDTO currentReservation = reservationService.findReservationById(dto.getId());
+
+        //create flag(hasChanged)
+        boolean hasChanged = false;
+        if (!dto.getDate().isEqual(currentReservation.getDate()) || !dto.getStartTime().equals(currentReservation.getStartTime()) || !dto.getEndTime().equals(currentReservation.getEndTime()) || dto.getRoomId().compareTo(currentReservation.getRoom().getId()) != 0) {
+            hasChanged = true;
+        }
+
+        //check if reservation has changed or not
+        if (hasChanged) {
+            reservationService.isReservationExistWithGivenDateAndTime(dto);
+        }
 
         User createUser = new User();
         createUser.setUsername(principal.getName());
         dto.setCreateUser(createUser);
-        reservationService.isReservationExistWithGivenReservation(dto);
+
         reservationService.updateReservation(dto);
     }
 
@@ -141,8 +157,8 @@ public class ReservationController {
         reservationService.isReservationExistWithGivenId(id);
 
         ReservationDTO reservation = reservationService.findReservationById(id);
-        List<User> users = reservationService.findUsersOfReservationById(id);
-        reservation.setParticipants(users);
+        //List<User> users = reservationService.findUsersOfReservationById(id);
+        //reservation.setParticipants(users);
 
         return GenericResponse.withSuccess(HttpStatus.OK, "specific reservation by id", reservation);
     }
@@ -174,18 +190,21 @@ public class ReservationController {
         List<String> list = new ArrayList<>();
         String user1 = dto.getCreateUser().getUsername();
         String user2 = "senan0144@gmail.com";
+        String user3 = "s.kazimov@adra.gov.az";
 
         list.add(user1);
         list.add(user2);
+        list.add(user3);
 
         Runnable runnableTask = () -> {
             list.forEach(user -> {
                 emailSenderUtil.sendEmailMessage(user, "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
-                        "Mövzu: " + dto.getTopic() + "\n" +
+                          "Rezerv edən (email): " + dto.getCreateUser().getUsername() + "\n" +
+                                "Mövzu: " + dto.getTopic() + "\n" +
                                 "Tarix: " + dto.getDate().toString() + "\n" +
                                 "Başlama saatı: " + dto.getStartTime().toString() + "\n" +
                                 "Bitmə saatı: " + dto.getEndTime().toString() + "\n" +
-                                "Otaq: " + dto.getRoomId());
+                                "Otaq: " + dto.getRoomName());
             });
         };
         service.submit(runnableTask);
