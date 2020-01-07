@@ -1,5 +1,7 @@
 package az.gov.adra.controller;
 
+import az.gov.adra.config.EmailConfig;
+import az.gov.adra.config.Feedback;
 import az.gov.adra.constant.MessageConstants;
 import az.gov.adra.dataTransferObjects.ReservationDTO;
 import az.gov.adra.entity.Reservation;
@@ -12,9 +14,21 @@ import az.gov.adra.util.TimeUtil;
 import az.gov.adra.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.xml.bind.ValidationException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +86,7 @@ public class ReservationController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @ResponseStatus(HttpStatus.CREATED)
     public void addReservation(@RequestBody ReservationDTO dto,
-                               Principal principal) throws ReservationCredentialsException {
+                               Principal principal) throws ReservationCredentialsException, AddressException {
         if (ValidationUtil.isNullOrEmpty(dto.getTopic()) || ValidationUtil.isNull(dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId())) {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
         }
@@ -84,7 +98,7 @@ public class ReservationController {
         reservationService.isReservationExistWithGivenDateAndTime(dto);
         reservationService.addReservation(dto);
 
-        sendSpecialEmailJob(dto);
+        sendReservationEmail(dto);
     }
 
     @PutMapping("/reservations")
@@ -184,21 +198,16 @@ public class ReservationController {
 //    }
 
 
-    private void sendSpecialEmailJob(ReservationDTO dto) {
+    private void sendReservationEmail(ReservationDTO dto) throws AddressException {
         ExecutorService service = Executors.newSingleThreadExecutor();
 
-        List<String> list = new ArrayList<>();
-        String user1 = dto.getCreateUser().getUsername();
-        String user2 = "senan0144@gmail.com";
-        String user3 = "s.kazimov@adra.gov.az";
-
-        list.add(user1);
-        list.add(user2);
-        list.add(user3);
+        List<Address> recipients = new ArrayList<>();
+        Address address = new InternetAddress(dto.getCreateUser().getUsername());
+        recipients.add(address);
 
         Runnable runnableTask = () -> {
-            list.forEach(user -> {
-                emailSenderUtil.sendEmailMessage(user, "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
+            recipients.forEach(add -> {
+                emailSenderUtil.sendEmailMessage(add, "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
                           "Rezerv edən (email): " + dto.getCreateUser().getUsername() + "\n" +
                                 "Mövzu: " + dto.getTopic() + "\n" +
                                 "Tarix: " + dto.getDate().toString() + "\n" +
@@ -207,8 +216,46 @@ public class ReservationController {
                                 "Otaq: " + dto.getRoomName());
             });
         };
+
         service.submit(runnableTask);
         service.shutdown();
     }
+
+//    @PostMapping("/feedback")
+//    public void sendFeedback(@RequestBody Feedback feedback, BindingResult bindingResult) throws ValidationException {
+//        //Validation
+//        if (bindingResult.hasErrors()) {
+//            throw new ValidationException("Feedback is not valid");
+//        }
+//
+//        //Create a email sender
+//        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+//        mailSender.setHost(this.emailConfig.getHost());
+//        mailSender.setPort(this.emailConfig.getPort());
+//        mailSender.setUsername(this.emailConfig.getUsername());
+//        mailSender.setPassword(this.emailConfig.getPassword());
+//
+////        //Create an email instance
+////        SimpleMailMessage mailMessage = new SimpleMailMessage();
+////        mailMessage.setFrom(feedback.getEmail());
+////        mailMessage.setTo("senan0144@gmail.com");
+////        mailMessage.setSubject("Feedback from: " + feedback.getName());
+////        mailMessage.setText(feedback.getFeedback());
+//
+//        //Create an email instance
+//
+//        //Send email
+//        mailSender.send(new MimeMessagePreparator() {
+//            @Override
+//            public void prepare(MimeMessage mimeMessage) throws Exception {
+//                Address address = new InternetAddress("senan0144@gmail.com");
+//                mimeMessage.setFrom(feedback.getEmail());
+//                mimeMessage.setRecipient(Message.RecipientType.TO, address);
+//                mimeMessage.setSubject("Feedback from: " + feedback.getName());
+//                mimeMessage.setText(feedback.getFeedback());
+//
+//            }
+//        });
+//    }
 
 }
