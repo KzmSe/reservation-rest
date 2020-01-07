@@ -21,9 +21,7 @@ spring:
     port: 587
     username: intranet.adra1@gmail.com
     password: adra@adra
-#  email:
-#    subject: Azerbaycan Dovlet Reklam Agentliyi
-#    body: Shifreni deyishmek ucun linke daxil olun http://localhost:4200/sigin/forgetpassword/changepassword?token=%s
+    subject: Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)
   app-name: RESERVATION
 
 

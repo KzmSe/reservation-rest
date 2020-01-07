@@ -1,7 +1,5 @@
 package az.gov.adra.controller;
 
-import az.gov.adra.config.EmailConfig;
-import az.gov.adra.config.Feedback;
 import az.gov.adra.constant.MessageConstants;
 import az.gov.adra.dataTransferObjects.ReservationDTO;
 import az.gov.adra.entity.Reservation;
@@ -13,22 +11,14 @@ import az.gov.adra.util.EmailSenderUtil;
 import az.gov.adra.util.TimeUtil;
 import az.gov.adra.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.Address;
-import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.xml.bind.ValidationException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +32,8 @@ public class ReservationController {
     private ReservationService reservationService;
     @Autowired
     private EmailSenderUtil emailSenderUtil;
+    @Value("${spring.mail.subject}")
+    private String subject;
 
 
     @GetMapping("/reservations")
@@ -177,27 +169,8 @@ public class ReservationController {
         return GenericResponse.withSuccess(HttpStatus.OK, "specific reservation by id", reservation);
     }
 
-//    //private methods
-//    private void sendEmailJob(ReservationDTO dto) {
-//        if (dto.getParticipants() != null && dto.getParticipants().size() != 0) {
-//            ExecutorService service = Executors.newSingleThreadExecutor();
-//
-//            Runnable runnableTask = () -> {
-//                dto.getParticipants().forEach(user -> {
-//                    emailSenderUtil.sendEmailMessage(user.getUsername(), "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
-//                            "Mövzu: " + dto.getTopic() + "\n" +
-//                                    "Tarix: " + dto.getDate().toString() + "\n" +
-//                                    "Başlama saatı: " + dto.getStartTime().toString() + "\n" +
-//                                    "Bitmə saatı: " + dto.getEndTime().toString() + "\n" +
-//                                    "Otaq: " + dto.getRoom().getId());
-//                });
-//            };
-//            service.submit(runnableTask);
-//            service.shutdown();
-//        }
-//    }
 
-
+    //private methods
     private void sendReservationEmail(ReservationDTO dto) throws AddressException {
         ExecutorService service = Executors.newSingleThreadExecutor();
 
@@ -207,7 +180,7 @@ public class ReservationController {
 
         Runnable runnableTask = () -> {
             recipients.forEach(add -> {
-                emailSenderUtil.sendEmailMessage(add, "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
+                emailSenderUtil.sendEmailMessage(add, subject,
                           "Rezerv edən (email): " + dto.getCreateUser().getUsername() + "\n" +
                                 "Mövzu: " + dto.getTopic() + "\n" +
                                 "Tarix: " + dto.getDate().toString() + "\n" +
