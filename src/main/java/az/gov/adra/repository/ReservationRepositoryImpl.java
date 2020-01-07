@@ -26,8 +26,8 @@ import java.util.List;
 @Repository
 public class ReservationRepositoryImpl implements ReservationRepository {
 
-    private static final String FIND_ALL_RESERVATIONS_BY_STATUS_SQL = "select ROW_NUMBER() OVER (ORDER BY res.date) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room, u.name, u.surname, u.username from Reservation res inner join Room room on res.room_id = room.id inner join users u on res.username = u.username where res.status = ? order by res.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    private static final String FIND_MY_RESERVATIONS_SQL = "select ROW_NUMBER() OVER (ORDER BY res.date) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room from Reservation res inner join Room room on res.room_id = room.id where res.username = ? and res.status = ? order by res.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String FIND_ALL_RESERVATIONS_BY_STATUS_SQL = "select ROW_NUMBER() OVER (ORDER BY res.date) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, room.name as room, res.status, u.name, u.surname, u.username from Reservation res inner join Room room on res.room_id = room.id inner join users u on res.username = u.username where res.status = ? order by res.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String FIND_MY_RESERVATIONS_SQL = "select ROW_NUMBER() OVER (ORDER BY res.date) AS number, res.id, res.topic, res.date, res.start_time, res.end_time, res.status, room.name as room from Reservation res inner join Room room on res.room_id = room.id where res.username = ? and res.status = ? order by res.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     private static final String FIND_RESERVATIONS_WHICH_I_JOINED_SQL = "select ROW_NUMBER() OVER (ORDER BY re.date) AS number, re.id, re.topic, re.date, re.start_time, re.end_time, room.name as room, u.name, u.surname, u.username from Reservation re inner join Reservation_users ru on re.id = ru.reservation_id inner join Room room on re.room_id = room.id inner join users u on re.username = u.username where ru.username = ? and re.status = ? order by re.date, res.start_time OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     private static final String ADD_RESERVATION_SQL = "insert into Reservation(username, topic, date, start_time, end_time, room_id, status) values (?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_RESERVATION_SQL = "update Reservation set topic = ?, date = ?, start_time = ?, end_time = ?, room_id = ? where id = ? and username = ? and status = ?";
@@ -59,6 +59,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                     reservation.setDate(rs.getDate("date").toLocalDate());
                     reservation.setStartTime(rs.getTime("start_time").toLocalTime());
                     reservation.setEndTime(rs.getTime("end_time").toLocalTime());
+                    reservation.setStatus(rs.getInt("status"));
 
                     Room room = new Room();
                     room.setName(rs.getString("room"));
@@ -95,6 +96,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                     reservation.setDate(rs.getDate("date").toLocalDate());
                     reservation.setStartTime(rs.getTime("start_time").toLocalTime());
                     reservation.setEndTime(rs.getTime("end_time").toLocalTime());
+                    reservation.setStatus(rs.getInt("status"));
 
                     Room room = new Room();
                     room.setName(rs.getString("room"));
