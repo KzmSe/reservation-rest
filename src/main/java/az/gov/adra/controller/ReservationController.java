@@ -175,8 +175,17 @@ public class ReservationController {
         ExecutorService service = Executors.newSingleThreadExecutor();
 
         List<Address> recipients = new ArrayList<>();
-        Address address = new InternetAddress(dto.getCreateUser().getUsername());
-        recipients.add(address);
+        Address principal = new InternetAddress(dto.getCreateUser().getUsername());
+        Address participant1 = new InternetAddress("v.namazov@adra.gov.az");
+        Address participant2 = new InternetAddress("n.nasirova@adra.gov.az");
+        Address participant3 = new InternetAddress("e.mardanov@adra.gov.az");
+        Address participant4 = new InternetAddress("gunel.hasanova@inno.az");
+
+        recipients.add(principal);
+        recipients.add(participant1);
+        recipients.add(participant2);
+        recipients.add(participant3);
+        recipients.add(participant4);
 
         Runnable runnableTask = () -> {
             recipients.forEach(add -> {

@@ -1,17 +1,23 @@
 {
+  "hints": [],
   "groups": [
     {
+      "sourceType": "az.gov.adra.config.SecurityProperties",
       "name": "security",
-      "type": "az.gov.adra.config.SecurityProperties",
-      "sourceType": "az.gov.adra.config.SecurityProperties"
+      "type": "az.gov.adra.config.SecurityProperties"
     },
     {
-      "name": "security.jwt",
-      "type": "az.gov.adra.config.SecurityProperties$JwtProperties",
       "sourceType": "az.gov.adra.config.SecurityProperties",
-      "sourceMethod": "getJwt()"
+      "name": "security.jwt",
+      "sourceMethod": "getJwt()",
+      "type": "az.gov.adra.config.SecurityProperties$JwtProperties"
     }
   ],
-  "properties": [],
-  "hints": []
+  "properties": [
+    {
+      "sourceType": "az.gov.adra.config.SecurityProperties$JwtProperties",
+      "name": "security.jwt.public-key",
+      "type": "org.springframework.core.io.Resource"
+    }
+  ]
 }
