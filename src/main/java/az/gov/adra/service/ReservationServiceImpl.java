@@ -57,8 +57,8 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void isReservationExistWithGivenDateAndTime(ReservationDTO dto) throws ReservationCredentialsException {
-        reservationRepository.isReservationExistWithGivenDateAndTime(dto);
+    public void isReservationExistWithGivenReservation(ReservationDTO dto) throws ReservationCredentialsException {
+        reservationRepository.isReservationExistWithGivenReservation(dto);
     }
 
     @Override
@@ -69,11 +69,6 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public ReservationDTO findReservationById(long id) {
         return reservationRepository.findReservationById(id);
-    }
-
-    @Override
-    public void updateReservationStatus() {
-        reservationRepository.updateReservationStatus();
     }
 
 }

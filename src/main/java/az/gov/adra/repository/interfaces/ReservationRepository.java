@@ -24,12 +24,10 @@ public interface ReservationRepository {
 
     void isReservationExistWithGivenId(long id) throws ReservationCredentialsException;
 
-    void isReservationExistWithGivenDateAndTime(ReservationDTO dto) throws ReservationCredentialsException;
+    void isReservationExistWithGivenReservation(ReservationDTO dto) throws ReservationCredentialsException;
 
     void deleteReservation(Reservation reservation) throws ReservationCredentialsException;
 
     ReservationDTO findReservationById(long id);
-
-    void updateReservationStatus();
 
 }
