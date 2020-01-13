@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Room {
 
-    private Long id;
+    private Integer id;
     private String name;
 
 }

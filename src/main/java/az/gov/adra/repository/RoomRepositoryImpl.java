@@ -16,27 +16,27 @@ import java.util.List;
 @Repository
 public class RoomRepositoryImpl implements RoomRepository {
 
-    private static final String FIND_ALL_ROOMS = "select id, name from Room";
+    private static final String FIND_ALL_ROOMS = "select * from Room";
 
     @Autowired
     JdbcTemplate jdbcTemplate;
 
     @Override
     public List<Room> findAllRooms() {
-     List<Room> roomList = jdbcTemplate.query(FIND_ALL_ROOMS, new ResultSetExtractor<List<Room>>() {
-         @Override
-         public List<Room> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            List<Room> list = new LinkedList<>();
-            while(rs.next()){
-                Room room = new Room();
-                room.setId(rs.getLong("id"));
-                room.setName(rs.getString("name"));
-                list.add(room);
+        List<Room> rooms = jdbcTemplate.query(FIND_ALL_ROOMS, new ResultSetExtractor<List<Room>>() {
+            @Override
+            public List<Room> extractData(ResultSet rs) throws SQLException, DataAccessException {
+                List<Room> list = new LinkedList<>();
+                while(rs.next()){
+                    Room room = new Room();
+                    room.setId(rs.getInt("id"));
+                    room.setName(rs.getString("name"));
+                    list.add(room);
+                }
+                return list;
             }
-             return list;
-         }
-     });
-        return roomList;
+        });
+        return rooms;
     }
 
 }

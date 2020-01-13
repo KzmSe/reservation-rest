@@ -21,7 +21,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public List<Room> findAllRooms() {
-        return null;
+        return roomRepository.findAllRooms();
     }
 
 }

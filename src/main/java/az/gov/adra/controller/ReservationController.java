@@ -8,17 +8,22 @@ import az.gov.adra.entity.response.GenericResponse;
 import az.gov.adra.exception.ReservationCredentialsException;
 import az.gov.adra.service.interfaces.ReservationService;
 import az.gov.adra.util.EmailSenderUtil;
+import az.gov.adra.util.TimeUtil;
 import az.gov.adra.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.Address;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 public class ReservationController {
@@ -27,6 +32,8 @@ public class ReservationController {
     private ReservationService reservationService;
     @Autowired
     private EmailSenderUtil emailSenderUtil;
+    @Value("${spring.mail.subject}")
+    private String subject;
 
 
     @GetMapping("/reservations")
@@ -71,14 +78,19 @@ public class ReservationController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @ResponseStatus(HttpStatus.CREATED)
     public void addReservation(@RequestBody ReservationDTO dto,
-                               Principal principal) throws ReservationCredentialsException {
+                               Principal principal) throws ReservationCredentialsException, AddressException {
+        if (ValidationUtil.isNullOrEmpty(dto.getTopic()) || ValidationUtil.isNull(dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId())) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
+        }
+        TimeUtil.checkTime(dto.getStartTime(), dto.getEndTime());
+
         User createUser = new User();
         createUser.setUsername(principal.getName());
         dto.setCreateUser(createUser);
-        reservationService.isReservationExistWithGivenReservation(dto);
+        reservationService.isReservationExistWithGivenDateAndTime(dto);
         reservationService.addReservation(dto);
 
-        //sendEmailJob(dto);
+        sendReservationEmail(dto);
     }
 
     @PutMapping("/reservations")
@@ -86,10 +98,32 @@ public class ReservationController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateReservation(@RequestBody ReservationDTO dto,
                                   Principal principal) throws ReservationCredentialsException {
+        //validation
+        if (ValidationUtil.isNullOrEmpty(dto.getTopic()) || ValidationUtil.isNull(dto.getId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), dto.getRoomId())) {
+            throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);
+        }
+
+        //check time
+        TimeUtil.checkTime(dto.getStartTime(), dto.getEndTime());
+
+        //get current reservation from db
+        ReservationDTO currentReservation = reservationService.findReservationById(dto.getId());
+
+        //create flag(hasChanged)
+        boolean hasChanged = false;
+        if (!dto.getDate().isEqual(currentReservation.getDate()) || !dto.getStartTime().equals(currentReservation.getStartTime()) || !dto.getEndTime().equals(currentReservation.getEndTime()) || dto.getRoomId().compareTo(currentReservation.getRoom().getId()) != 0) {
+            hasChanged = true;
+        }
+
+        //check if reservation has changed or not
+        if (hasChanged) {
+            reservationService.isReservationExistWithGivenDateAndTime(dto);
+        }
+
         User createUser = new User();
         createUser.setUsername(principal.getName());
         dto.setCreateUser(createUser);
-        reservationService.isReservationExistWithGivenReservation(dto);
+
         reservationService.updateReservation(dto);
     }
 
@@ -129,30 +163,81 @@ public class ReservationController {
         reservationService.isReservationExistWithGivenId(id);
 
         ReservationDTO reservation = reservationService.findReservationById(id);
-        List<User> users = reservationService.findUsersOfReservationById(id);
-        reservation.setParticipants(users);
+        //List<User> users = reservationService.findUsersOfReservationById(id);
+        //reservation.setParticipants(users);
 
         return GenericResponse.withSuccess(HttpStatus.OK, "specific reservation by id", reservation);
     }
 
-//    //private methods
-//    private void sendEmailJob(ReservationDTO dto) {
-//        if (dto.getParticipants() != null && dto.getParticipants().size() != 0) {
-//            ExecutorService service = Executors.newSingleThreadExecutor();
-//
-//            Runnable runnableTask = () -> {
-//                dto.getParticipants().forEach(user -> {
-//                    emailSenderUtil.sendEmailMessage(user.getUsername(), "Azərbaycan Dövlət Reklam Agentliyi (Reservasiya bildirişi)",
-//                            "Mövzu: " + dto.getTopic() + "\n" +
-//                                    "Tarix: " + dto.getDate().toString() + "\n" +
-//                                    "Başlama saatı: " + dto.getStartTime().toString() + "\n" +
-//                                    "Bitmə saatı: " + dto.getEndTime().toString() + "\n" +
-//                                    "Otaq: " + dto.getRoom().getId());
-//                });
-//            };
-//            service.submit(runnableTask);
-//            service.shutdown();
+
+    //private methods
+    private void sendReservationEmail(ReservationDTO dto) throws AddressException {
+        ExecutorService service = Executors.newSingleThreadExecutor();
+
+        List<Address> recipients = new ArrayList<>();
+        Address principal = new InternetAddress(dto.getCreateUser().getUsername());
+        Address participant1 = new InternetAddress("v.namazov@adra.gov.az");
+        Address participant2 = new InternetAddress("n.nasirova@adra.gov.az");
+        Address participant3 = new InternetAddress("e.mardanov@adra.gov.az");
+        Address participant4 = new InternetAddress("gunel.hasanova@inno.az");
+
+        recipients.add(principal);
+        recipients.add(participant1);
+        recipients.add(participant2);
+        recipients.add(participant3);
+        recipients.add(participant4);
+
+        Runnable runnableTask = () -> {
+            recipients.forEach(add -> {
+                emailSenderUtil.sendEmailMessage(add, subject,
+                          "Rezerv edən (email): " + dto.getCreateUser().getUsername() + "\n" +
+                                "Mövzu: " + dto.getTopic() + "\n" +
+                                "Tarix: " + dto.getDate().toString() + "\n" +
+                                "Başlama saatı: " + dto.getStartTime().toString() + "\n" +
+                                "Bitmə saatı: " + dto.getEndTime().toString() + "\n" +
+                                "Otaq: " + dto.getRoomName());
+            });
+        };
+
+        service.submit(runnableTask);
+        service.shutdown();
+    }
+
+//    @PostMapping("/feedback")
+//    public void sendFeedback(@RequestBody Feedback feedback, BindingResult bindingResult) throws ValidationException {
+//        //Validation
+//        if (bindingResult.hasErrors()) {
+//            throw new ValidationException("Feedback is not valid");
 //        }
+//
+//        //Create a email sender
+//        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+//        mailSender.setHost(this.emailConfig.getHost());
+//        mailSender.setPort(this.emailConfig.getPort());
+//        mailSender.setUsername(this.emailConfig.getUsername());
+//        mailSender.setPassword(this.emailConfig.getPassword());
+//
+////        //Create an email instance
+////        SimpleMailMessage mailMessage = new SimpleMailMessage();
+////        mailMessage.setFrom(feedback.getEmail());
+////        mailMessage.setTo("senan0144@gmail.com");
+////        mailMessage.setSubject("Feedback from: " + feedback.getName());
+////        mailMessage.setText(feedback.getFeedback());
+//
+//        //Create an email instance
+//
+//        //Send email
+//        mailSender.send(new MimeMessagePreparator() {
+//            @Override
+//            public void prepare(MimeMessage mimeMessage) throws Exception {
+//                Address address = new InternetAddress("senan0144@gmail.com");
+//                mimeMessage.setFrom(feedback.getEmail());
+//                mimeMessage.setRecipient(Message.RecipientType.TO, address);
+//                mimeMessage.setSubject("Feedback from: " + feedback.getName());
+//                mimeMessage.setText(feedback.getFeedback());
+//
+//            }
+//        });
 //    }
 
 }
