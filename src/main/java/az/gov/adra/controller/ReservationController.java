@@ -37,7 +37,7 @@ public class ReservationController {
 
 
     @GetMapping("/reservations")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findAllReservations(@RequestParam(name = "status", required = false) Integer status,
                                                @RequestParam(name = "fetchNext", required = false) Integer fetchNext) throws ReservationCredentialsException {
         if (ValidationUtil.isNull(status) || ValidationUtil.isNull(fetchNext)) {
@@ -49,7 +49,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/me")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findMyReservations(@RequestParam(name = "status", required = false) Integer status,
                                               @RequestParam(name = "fetchNext", required = false) Integer fetchNext,
                                               Principal principal) throws ReservationCredentialsException {
@@ -62,7 +62,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/joined")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findReservationsWhichIJoined(@RequestParam(name = "status", required = false) Integer status,
                                                       @RequestParam(name = "fetchNext", required = false) Integer fetchNext,
                                                       Principal principal) throws ReservationCredentialsException {
@@ -75,7 +75,7 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     @ResponseStatus(HttpStatus.CREATED)
     public void addReservation(@RequestBody ReservationDTO dto,
                                Principal principal) throws ReservationCredentialsException, AddressException {
@@ -94,7 +94,7 @@ public class ReservationController {
     }
 
     @PutMapping("/reservations")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateReservation(@RequestBody ReservationDTO dto,
                                   Principal principal) throws ReservationCredentialsException {
@@ -128,7 +128,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/{reservationId}/participants")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findUsersOfReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
         reservationService.isReservationExistWithGivenId(id);
         List<User> users = reservationService.findUsersOfReservationById(id);
@@ -136,7 +136,7 @@ public class ReservationController {
     }
 
     @DeleteMapping("/reservations/{reservationId}")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     @ResponseStatus(HttpStatus.OK)
     public void deleteReservation(@PathVariable(name = "reservationId", required = false) Long id,
                                   Principal principal) throws ReservationCredentialsException {
@@ -155,7 +155,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/{reservationId}")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
         if (ValidationUtil.isNull(id)) {
             throw new ReservationCredentialsException(MessageConstants.ERROR_MESSAGE_ONE_OR_MORE_FIELDS_ARE_EMPTY);

@@ -19,7 +19,7 @@ public class RoomController {
 
 
     @GetMapping("/rooms")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findAllRooms() {
         List<Room> rooms = roomService.findAllRooms();
         return GenericResponse.withSuccess(HttpStatus.OK, "list of all rooms", rooms);
