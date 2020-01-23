@@ -10,6 +10,7 @@ import az.gov.adra.service.interfaces.ReservationService;
 import az.gov.adra.util.EmailSenderUtil;
 import az.gov.adra.util.TimeUtil;
 import az.gov.adra.util.ValidationUtil;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class ReservationController {
 
 
     @GetMapping("/reservations")
+    @ApiOperation(value = "Finds all reservations")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findAllReservations(@RequestParam(name = "status", required = false) Integer status,
                                                @RequestParam(name = "fetchNext", required = false) Integer fetchNext) throws ReservationCredentialsException {
@@ -49,6 +51,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/me")
+    @ApiOperation(value = "Finds my reservations")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findMyReservations(@RequestParam(name = "status", required = false) Integer status,
                                               @RequestParam(name = "fetchNext", required = false) Integer fetchNext,
@@ -62,6 +65,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/joined")
+    @ApiOperation(value = "Finds reservations which I invented")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findReservationsWhichIJoined(@RequestParam(name = "status", required = false) Integer status,
                                                       @RequestParam(name = "fetchNext", required = false) Integer fetchNext,
@@ -76,6 +80,7 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
+    @ApiOperation(value = "Adds reservation")
     @ResponseStatus(HttpStatus.CREATED)
     public void addReservation(@RequestBody ReservationDTO dto,
                                Principal principal) throws ReservationCredentialsException, AddressException {
@@ -95,6 +100,7 @@ public class ReservationController {
 
     @PutMapping("/reservations")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
+    @ApiOperation(value = "Updates reservation")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateReservation(@RequestBody ReservationDTO dto,
                                   Principal principal) throws ReservationCredentialsException {
@@ -128,6 +134,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/{reservationId}/participants")
+    @ApiOperation(value = "Finds participants of reservation")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findUsersOfReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
         reservationService.isReservationExistWithGivenId(id);
@@ -137,6 +144,7 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{reservationId}")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
+    @ApiOperation(value = "Deletes reservation")
     @ResponseStatus(HttpStatus.OK)
     public void deleteReservation(@PathVariable(name = "reservationId", required = false) Long id,
                                   Principal principal) throws ReservationCredentialsException {
@@ -155,6 +163,7 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/{reservationId}")
+    @ApiOperation(value = "Finds specific reservation")
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_HR')")
     public GenericResponse findReservationById(@PathVariable(name = "reservationId", required = false) Long id) throws ReservationCredentialsException {
         if (ValidationUtil.isNull(id)) {

@@ -11,6 +11,7 @@ import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -33,7 +34,8 @@ public class SpringFoxConfig {
         return new ApiInfoBuilder()
                 .title("RESERVATION APIs")
                 .description("APIs related to RESERVATION app listed here")
-                .version("1.0.0-SNAPSHOT")
+                .version("1")
+                .contact(new Contact("Sənan Kazımov", "linkedin.com", "sanan_kazimov@outlook.com"))
                 .build();
     }
 }
