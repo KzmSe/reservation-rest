@@ -172,8 +172,8 @@ public class ReservationController {
         reservationService.isReservationExistWithGivenId(id);
 
         ReservationDTO reservation = reservationService.findReservationById(id);
-        //List<User> users = reservationService.findUsersOfReservationById(id);
-        //reservation.setParticipants(users);
+        List<User> users = reservationService.findUsersOfReservationById(id);
+        reservation.setParticipants(users);
 
         return GenericResponse.withSuccess(HttpStatus.OK, "specific reservation by id", reservation);
     }
@@ -185,16 +185,28 @@ public class ReservationController {
 
         List<Address> recipients = new ArrayList<>();
         Address principal = new InternetAddress(dto.getCreateUser().getUsername());
-        Address participant1 = new InternetAddress("v.namazov@adra.gov.az");
-        Address participant2 = new InternetAddress("n.nasirova@adra.gov.az");
-        Address participant3 = new InternetAddress("e.mardanov@adra.gov.az");
-        Address participant4 = new InternetAddress("gunel.hasanova@inno.az");
+
+        dto.getParticipants().forEach(user -> {
+            if (!user.getUsername().isEmpty() && user.getUsername().contains("@")) {
+                try {
+                    recipients.add(new InternetAddress(user.getUsername()));
+
+                } catch (AddressException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        //Address participant1 = new InternetAddress("v.namazov@adra.gov.az");
+        //Address participant2 = new InternetAddress("n.nasirova@adra.gov.az");
+        //Address participant3 = new InternetAddress("e.mardanov@adra.gov.az");
+        //Address participant4 = new InternetAddress("gunel.hasanova@inno.az");
 
         recipients.add(principal);
-        recipients.add(participant1);
-        recipients.add(participant2);
-        recipients.add(participant3);
-        recipients.add(participant4);
+        //recipients.add(participant1);
+        //recipients.add(participant2);
+        //recipients.add(participant3);
+        //recipients.add(participant4);
 
         Runnable runnableTask = () -> {
             recipients.forEach(add -> {

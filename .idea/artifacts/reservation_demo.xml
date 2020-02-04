@@ -1,7 +1,7 @@
 <component name="ArtifactManager">
-  <artifact type="war" name="reservation">
-    <output-path>$PROJECT_DIR$/classes/artifacts/reservation</output-path>
-    <root id="archive" name="reservation.war">
+  <artifact type="war" name="reservation-demo">
+    <output-path>$PROJECT_DIR$/classes/artifacts/reservation_demo</output-path>
+    <root id="archive" name="reservation-demo.war">
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
           <element id="module-output" name="reservation-rest" />
@@ -105,6 +105,9 @@
         </element>
       </element>
       <element id="javaee-facet-resources" facet="reservation-rest/web/Web" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/main/java/META-INF/MANIFEST.MF" />
+      </element>
     </root>
   </artifact>
 </component>
